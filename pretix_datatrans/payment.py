@@ -67,7 +67,7 @@ class Datatrans(BasePaymentProvider):
             transactions_url,
             json={
                 "currency": self.event.currency,
-                "refno": payment.order.code,
+                "refno": payment.full_id,
                 "amount": float(payment.amount) * 100,
                 "paymentMethods": payment_methods,
                 "redirect": {

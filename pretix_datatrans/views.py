@@ -36,17 +36,18 @@ def _redirect_to_order(event, order):
 
 
 def confirm_payment(event, order, request, transaction_id, body):
-    if body["refno"] != order.code:
+    payment = order.payments.filter(
+        info__contains=transaction_id,
+        provider__exact="datatrans",
+    ).last()
+
+    if body["refno"] != payment.full_id:
         raise PaymentException(_("transaction id does not match order"))
 
     status = body["status"]
     if status != "authorized" and status != "settled" and status != "transmitted":
         return _("unexpected payment status: %s") % status
 
-    payment = order.payments.filter(
-        info__contains=transaction_id,
-        provider__exact="datatrans",
-    ).last()
     payment.confirm()
 
     return ""  # no error
