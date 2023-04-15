@@ -1,0 +1,5 @@
+recursive-include pretix_datatrans/static *
+recursive-include pretix_datatrans/templates *
+recursive-include pretix_datatrans/locale *
+include LICENSE
+exclude .gitlab-ci.yml
