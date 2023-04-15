@@ -36,5 +36,12 @@ def register_global_settings(sender, **kwargs):
                     required=False,
                 ),
             ),
+            (
+                "payment_datatrans_hmac_signing_key",
+                forms.CharField(
+                    label="Datatrans: HMAC Signing Key (Webhook)",
+                    required=False,
+                ),
+            ),
         ]
     )

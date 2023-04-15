@@ -50,12 +50,19 @@ class Datatrans(BasePaymentProvider):
         success_url = url_base + "?state=success"
         error_url = url_base + "?state=error"
         cancel_url = url_base + "?state=cancel"
-        logger.error("success_url = %s" % str(success_url))
+        logger.info("datatrans success_url = %s" % success_url)
+
+        webhook_url = build_absolute_uri(
+            request.event,
+            "plugins:pretix_datatrans:webhook",
+        )
+        logger.info("datatrans webhook_url = %s" % webhook_url)
 
         payment_methods = ["TWI"]
         if gs.settings.payment_datatrans_sandbox:
             payment_methods = ["VIS"]
 
+        # https://api-reference.datatrans.ch/#tag/v1transactions/operation/init
         response = requests.post(
             transactions_url,
             json={
@@ -67,6 +74,9 @@ class Datatrans(BasePaymentProvider):
                     "successUrl": success_url,
                     "cancelUrl": cancel_url,
                     "errorUrl": error_url,
+                },
+                "webhook": {
+                    "url": webhook_url,
                 },
             },
             auth=HTTPBasicAuth(

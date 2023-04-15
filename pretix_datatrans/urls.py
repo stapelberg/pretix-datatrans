@@ -1,13 +1,17 @@
-from django.conf.urls import include, url
+from django.conf.urls import include, re_path
+from pretix.multidomain import event_url
 
-from .views import ReturnView
+from .views import ReturnView, webhook
 
 event_patterns = [
-    url(
+    re_path(
         r"^datatrans/",
         include(
             [
-                url(r"^return/(?P<order>[^/]+)/$", ReturnView.as_view(), name="return"),
+                event_url(r"^webhook/$", webhook, name="webhook", require_live=False),
+                re_path(
+                    r"^return/(?P<order>[^/]+)/$", ReturnView.as_view(), name="return"
+                ),
             ]
         ),
     ),
