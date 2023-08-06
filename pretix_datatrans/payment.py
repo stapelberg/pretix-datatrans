@@ -22,7 +22,9 @@ class Datatrans(BasePaymentProvider):
     @property
     def public_name(self):
         gs = GlobalSettingsObject()
-        return str(gs.settings.get('payment_datatrans_public_name') or self.verbose_name)
+        return str(
+            gs.settings.get("payment_datatrans_public_name") or self.verbose_name
+        )
 
     def payment_is_valid_session(self, request):
         return True
@@ -75,8 +77,7 @@ class Datatrans(BasePaymentProvider):
         )
         if not response:
             raise PaymentException(
-                _("datatrans: Fehler %s: %s" % (response.status_code,
-                                                response.content))
+                _("datatrans: Fehler %s: %s" % (response.status_code, response.content))
             )
         refund.done()
         body = response.json()
