@@ -1,0 +1,5 @@
+[plugin]
+package = "pretix-datatrans"
+modules = [ "pretix_datatrans" ]
+marketplace_name = "datatrans"
+
