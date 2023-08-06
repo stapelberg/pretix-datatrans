@@ -16,6 +16,13 @@ def register_global_settings(sender, **kwargs):
     return OrderedDict(
         [
             (
+                "payment_datatrans_public_name",
+                forms.CharField(
+                    label="Datatrans: public name",
+                    required=False,
+                ),
+            ),
+            (
                 "payment_datatrans_sandbox",
                 forms.BooleanField(
                     label="Datatrans: Use Sandbox",

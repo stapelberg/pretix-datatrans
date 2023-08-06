@@ -19,6 +19,11 @@ class Datatrans(BasePaymentProvider):
     def __init__(self, event: Event):
         super().__init__(event)
 
+    @property
+    def public_name(self):
+        gs = GlobalSettingsObject()
+        return str(gs.settings.get('payment_datatrans_public_name') or self.verbose_name)
+
     def payment_is_valid_session(self, request):
         return True
 
