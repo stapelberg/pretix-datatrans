@@ -46,6 +46,8 @@ class Datatrans(BasePaymentProvider):
         return True
 
     def execute_refund(self, refund: OrderRefund):
+        # refund docs:
+        # https://docs.pretix.eu/en/latest/development/implementation/models.html#pretix.base.models.OrderRefund
         payment_info = refund.payment.info_data
         if not payment_info:
             raise PaymentException(_("datatrans: no payment info found"))
@@ -68,7 +70,8 @@ class Datatrans(BasePaymentProvider):
             json={
                 "currency": self.event.currency,
                 "refno": refund.full_id,
-                "amount": float(refund.amount) * 100,
+                # refund.amount is of type decimal.Decimal
+                "amount": int(refund.amount * 100),
             },
             auth=HTTPBasicAuth(
                 gs.settings.payment_datatrans_merchant_id,
@@ -84,6 +87,8 @@ class Datatrans(BasePaymentProvider):
         logger.info("datatrans credit body = %s" % body)
 
     def execute_payment(self, request: HttpRequest, payment: OrderPayment):
+        # OrderPayment docs:
+        # https://docs.pretix.eu/en/latest/development/implementation/models.html#pretix.base.models.OrderPayment
         gs = GlobalSettingsObject()
         # initialize transaction by calling datatrans API
         transactions_url = "https://api.sandbox.datatrans.com/v1/transactions"
@@ -119,7 +124,8 @@ class Datatrans(BasePaymentProvider):
             json={
                 "currency": self.event.currency,
                 "refno": payment.full_id,
-                "amount": float(payment.amount) * 100,
+                # payment.amount is of type decimal.Decimal
+                "amount": int(payment.amount * 100),
                 "paymentMethods": payment_methods,
                 "redirect": {
                     "successUrl": success_url,
