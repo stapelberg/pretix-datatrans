@@ -147,6 +147,12 @@ class Datatrans(BasePaymentProvider):
             )
         body = response.json()
         transaction_id = body["transactionId"]
+        # Check if another request raced us; do not clobber the transaction id.
+        payment.refresh_from_db()
+        if 'transaction' in payment.info_data:
+            logger.info("re-using transaction id from payment (%s), discarding %s", payment.info_data['transaction'], transaction_id)
+            return start_url + payment.info_data['transaction']
+        logger.info("datatrans transaction id = %s" % transaction_id)
         payment.info_data = {"transaction": transaction_id}
         payment.save(update_fields=["info"])
 
