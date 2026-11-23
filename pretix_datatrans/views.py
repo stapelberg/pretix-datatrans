@@ -45,12 +45,31 @@ def confirm_payment(event, order, request, transaction_id, body):
         raise PaymentException(_("transaction id does not match order"))
 
     status = body["status"]
-    if status != "authorized" and status != "settled" and status != "transmitted":
-        return _("unexpected payment status: %s") % status
+    if status in ("authorized", "settled", "transmitted"):
+        payment.confirm()
+        return ""  # no error
 
-    payment.confirm()
+    # Datatrans puts the failure reason into detail.fail, e.g.
+    # {"reason": "...", "message": "..."}. Log the whole body so that the
+    # reason ends up in the journal (but is not shown to the customer).
+    logger.warning(
+        "datatrans transaction %s for payment %s has status %s: %s",
+        transaction_id,
+        payment.full_id,
+        status,
+        body,
+    )
 
-    return ""  # no error
+    if status in ("failed", "canceled"):
+        # Keep the transaction id in info so that refunds and later lookups
+        # (info__contains=transaction_id) keep working. Do not email the
+        # customer: they see the failure on the order page anyway.
+        payment.fail(
+            info={"transaction": transaction_id, "datatrans_status": body},
+            send_mail=False,
+        )
+
+    return _("unexpected payment status: %s") % status
 
 
 @csrf_exempt
@@ -122,7 +141,14 @@ def webhook(request, *args, **kwargs):
         request.event, payment.order, request, transaction_id, status_json
     )
     if error_message != "":
-        raise Exception(error_message)
+        # Not a server error: Datatrans reports failed/canceled transactions
+        # through this webhook, too. confirm_payment logged the details;
+        # acknowledge the webhook so that Datatrans does not retry it.
+        logger.info(
+            "datatrans webhook for transaction id %s not confirmed: %s",
+            transaction_id,
+            error_message,
+        )
 
     return HttpResponse("okay")
 
